@@ -9,7 +9,7 @@ root = global ? window
 
 if root.Meteor.isClient
   context = {}
-  
+
   Meteor.startup ->
     console.log 'client ready.'
     context.stage = new Kinetic.Stage({
@@ -26,8 +26,8 @@ if root.Meteor.isClient
   Template.diagram.events = 'click button' : () ->
     graphNode =
       title: $("#form-title").val()
-      xpos: 100
-      ypos:100
+      xpos : parseInt Math.random()*(context.stage.getWidth() - 100)
+      ypos : parseInt Math.random()*(context.stage.getHeight() - 50)
 
     if not GraphNodes.validate graphNode
       alert 'input invalid'
@@ -38,8 +38,8 @@ if root.Meteor.isClient
       else
         $("#form-title").val("")
         rect = new Kinetic.Rect({
-          x: 5
-          y: 75
+          x: graphNode.xpos
+          y: graphNode.ypos
           width: 100
           height: 50
           fill: "yellow"
