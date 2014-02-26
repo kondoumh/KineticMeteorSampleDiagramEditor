@@ -8,8 +8,17 @@ root = global ? window
   return true
 
 if root.Meteor.isClient
+  context = {}
+  
   Meteor.startup ->
     console.log 'client ready.'
+    context.stage = new Kinetic.Stage({
+      container  : container
+      width      : 578
+      height     : 200
+    })
+    context.layer = new Kinetic.Layer()
+    context.stage.add(context.layer)
 
   Template.diagram.greeting = () ->
     return "Welcome to dia-study."
@@ -23,9 +32,30 @@ if root.Meteor.isClient
     if not GraphNodes.validate graphNode
       alert 'input invalid'
       return
-    inserted = GraphNodes.insert graphNode
-    console.log 'inserted ' + inserted
-    $("#form-title").val("")
+    inserted = GraphNodes.insert graphNode, (error, result) ->
+      if error
+        console.log JSON.stringify error, null, 2
+      else
+        $("#form-title").val("")
+        rect = new Kinetic.Rect({
+          x: 5
+          y: 75
+          width: 100
+          height: 50
+          fill: "yellow"
+          stroke: "black"
+          strokeWidth: 4
+          draggable: true
+          id: result
+          name: graphNode.title
+        })
+        rect.on "dragmove", () ->
+          GraphNodes.update {_id: this.getId()}, { $set: xpos: this.attrs.x, ypos: this.attrs.y}
+          entry = GraphNodes.findOne _id: rect.getId()
+          if entry
+            console.log entry.title + ' ' + entry.xpos + ',' + entry.ypos
+        context.layer.add(rect)
+        context.layer.draw()
 
 if root.Meteor.isServer
   Meteor.startup ->
