@@ -36,13 +36,20 @@ if root.Meteor.isClient
       if error
         console.log JSON.stringify error, null, 2
       else
+        fill = "yellow"
+        if graphNode.title.length % 2 == 0
+          fill = "green"
+        else if graphNode.title.length % 3 == 0
+          fill = "red"
+        else if graphNode.title.length % 5 == 0
+          fill = "pink"
         $("#form-title").val("")
         rect = new Kinetic.Rect({
           x: graphNode.xpos
           y: graphNode.ypos
           width: 100
           height: 50
-          fill: "yellow"
+          fill: fill
           stroke: "black"
           strokeWidth: 4
           draggable: true
