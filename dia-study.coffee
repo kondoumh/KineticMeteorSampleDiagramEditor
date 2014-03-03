@@ -29,20 +29,17 @@ buildContext = (context) ->
     parseInt Math.random()*(context.stage.getWidth() - 100)
   context.getRandomY = () ->
     parseInt Math.random()*(context.stage.getHeight() - 50)
-  context.registerShape = (shape) ->
-    context.layer.add(shape)
-    addTweenEffect(shape)
+  context.registerShape = (label) ->
+    context.layer.add label
+    addTweenEffect label.getTag()
     context.layer.draw()
 
 createShape = (graphNode, id) ->
-  new Kinetic.Rect({
+  label = new Kinetic.Label({
     x: graphNode.xpos
     y: graphNode.ypos
     width: 100
     height: 50
-    fill: colorByName(graphNode.title)
-    stroke: "black"
-    strokeWidth: 4
     draggable: true
     id: id
     name: graphNode.title
@@ -52,16 +49,31 @@ createShape = (graphNode, id) ->
     entry = GraphNodes.findOne _id: this.getId()
     if entry
       console.log entry.title + ' ' + entry.xpos + ',' + entry.ypos
-  .on "mouseover", (event) ->
+  .on "mouseover", () ->
     document.body.style.cursor = 'pointer'
-    event.targetNode.tween.play()
-  .on "mouseout", (event) ->
+    this.getTag().tween.play()
+  .on "mouseout", () ->
     document.body.style.cursor = 'default'
-    event.targetNode.tween.reverse()
+    this.getTag().tween.reverse()
 
-addTweenEffect = (shape) ->
-  shape.tween = new Kinetic.Tween({
-    node: shape
+  label.add new Kinetic.Tag({
+    fill: colorByName(graphNode.title)
+    stroke: "black"
+    strokeWidth: 4
+  })
+
+  label.add new Kinetic.Text({
+    text: graphNode.title
+    fontSize: 18
+    padding: 10
+    fill: 'black'
+  })
+  label
+
+
+addTweenEffect = (tag) ->
+  tag.tween = new Kinetic.Tween({
+    node: tag
     scaleX: 1.2
     scaleY: 1.2
     easing: Kinetic.Easings.EaseInOut
