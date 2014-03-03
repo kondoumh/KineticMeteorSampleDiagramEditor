@@ -1,21 +1,17 @@
-root = global ? window
-
-@GraphNodes = new Meteor.Collection("GraphNodes")
+@GraphNodes = new Meteor.Collection 'GraphNodes'
 
 @GraphNodes.validate = (graphNode) ->
-  if not graphNode.title
-    return false
-  return true
+  if graphNode.title then true else false
 
 colorByName = (name) ->
-  if name.length % 2 == 0
-    "green"
+  if name.length % 5 == 0
+    'green'
   else if name.length % 3 == 0
-    "red"
-  else if name.length % 5 == 0
-    "pink"
+    'red'
+  else if name.length % 2 == 0
+    'pink'
   else
-    "yellow"
+    'yellow'
 
 buildContext = (context) ->
   context.stage = new Kinetic.Stage({
@@ -24,7 +20,7 @@ buildContext = (context) ->
     height     : 200
   })
   context.layer = new Kinetic.Layer()
-  context.stage.add(context.layer)
+  context.stage.add context.layer
   context.getRandomX = () ->
     parseInt Math.random()*(context.stage.getWidth() - 100)
   context.getRandomY = () ->
@@ -32,6 +28,7 @@ buildContext = (context) ->
   context.registerShape = (label) ->
     context.layer.add label
     addTweenEffect label.getTag()
+    addTweenEffect label.getText()
     context.layer.draw()
 
 createShape = (graphNode, id) ->
@@ -44,21 +41,23 @@ createShape = (graphNode, id) ->
     id: id
     name: graphNode.title
   })
-  .on "dragmove", () ->
+  .on 'dragmove', () ->
     GraphNodes.update {_id: this.getId()}, { $set: xpos: this.attrs.x, ypos: this.attrs.y}
     entry = GraphNodes.findOne _id: this.getId()
     if entry
       console.log entry.title + ' ' + entry.xpos + ',' + entry.ypos
-  .on "mouseover", () ->
+  .on 'mouseover', () ->
     document.body.style.cursor = 'pointer'
     this.getTag().tween.play()
-  .on "mouseout", () ->
+    this.getText().tween.play()
+  .on 'mouseout', () ->
     document.body.style.cursor = 'default'
     this.getTag().tween.reverse()
+    this.getText().tween.reverse()
 
   label.add new Kinetic.Tag({
     fill: colorByName(graphNode.title)
-    stroke: "black"
+    stroke: 'black'
     strokeWidth: 4
   })
 
@@ -71,28 +70,31 @@ createShape = (graphNode, id) ->
   label
 
 
-addTweenEffect = (tag) ->
-  tag.tween = new Kinetic.Tween({
-    node: tag
+addTweenEffect = (node) ->
+  node.tween = new Kinetic.Tween({
+    node: node
     scaleX: 1.2
     scaleY: 1.2
     easing: Kinetic.Easings.EaseInOut
     duration: 0.5
   })
 
+
+root = global ? window
+
 if root.Meteor.isClient
   context = {}
 
   Meteor.startup ->
-    buildContext(context)
+    buildContext context
     console.log 'client ready.'
 
   Template.diagram.greeting = () ->
-    return "Welcome to dia-study."
+    'Welcome to dia-study.'
 
   Template.diagram.events = 'click button' : () ->
     graphNode =
-      title: $("#form-title").val()
+      title: $('#form-title').val()
       xpos : context.getRandomX()
       ypos : context.getRandomY()
 
@@ -103,9 +105,10 @@ if root.Meteor.isClient
       if error
         console.log JSON.stringify error, null, 2
       else
-        context.registerShape(createShape(graphNode, result))
-        $("#form-title").val("")
+        context.registerShape createShape(graphNode, result)
+        $('#form-title').val ''
+
 
 if root.Meteor.isServer
   Meteor.startup ->
-    console.log "Server started!"
+    console.log 'Server started!'
