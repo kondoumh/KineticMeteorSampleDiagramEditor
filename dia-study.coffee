@@ -29,6 +29,10 @@ buildContext = (context) ->
     parseInt Math.random()*(context.stage.getWidth() - 100)
   context.getRandomY = () ->
     parseInt Math.random()*(context.stage.getHeight() - 50)
+  context.registerShape = (shape) ->
+    context.layer.add(shape)
+    addTweenEffect(shape)
+    context.layer.draw()
 
 createShape = (graphNode, id) ->
   new Kinetic.Rect({
@@ -87,10 +91,7 @@ if root.Meteor.isClient
       if error
         console.log JSON.stringify error, null, 2
       else
-        rect = createShape(graphNode, result)
-        context.layer.add(rect)
-        addTweenEffect(rect)
-        context.layer.draw()
+        context.registerShape(createShape(graphNode, result))
         $("#form-title").val("")
 
 if root.Meteor.isServer
