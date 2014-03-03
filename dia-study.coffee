@@ -17,18 +17,59 @@ colorByName = (name) ->
   else
     "yellow"
 
+buildContext = (context) ->
+  context.stage = new Kinetic.Stage({
+    container  : container
+    width      : 578
+    height     : 200
+  })
+  context.layer = new Kinetic.Layer()
+  context.stage.add(context.layer)
+  context.getRandomX = () ->
+    parseInt Math.random()*(context.stage.getWidth() - 100)
+  context.getRandomY = () ->
+    parseInt Math.random()*(context.stage.getHeight() - 50)
+
+createShape = (graphNode, id) ->
+  new Kinetic.Rect({
+    x: graphNode.xpos
+    y: graphNode.ypos
+    width: 100
+    height: 50
+    fill: colorByName(graphNode.title)
+    stroke: "black"
+    strokeWidth: 4
+    draggable: true
+    id: id
+    name: graphNode.title
+  })
+  .on "dragmove", () ->
+    GraphNodes.update {_id: this.getId()}, { $set: xpos: this.attrs.x, ypos: this.attrs.y}
+    entry = GraphNodes.findOne _id: this.getId()
+    if entry
+      console.log entry.title + ' ' + entry.xpos + ',' + entry.ypos
+  .on "mouseover", (event) ->
+    document.body.style.cursor = 'pointer'
+    event.targetNode.tween.play()
+  .on "mouseout", (event) ->
+    document.body.style.cursor = 'default'
+    event.targetNode.tween.reverse()
+
+addTweenEffect = (shape) ->
+  shape.tween = new Kinetic.Tween({
+    node: shape
+    scaleX: 1.2
+    scaleY: 1.2
+    easing: Kinetic.Easings.EaseInOut
+    duration: 0.5
+  })
+
 if root.Meteor.isClient
   context = {}
 
   Meteor.startup ->
+    buildContext(context)
     console.log 'client ready.'
-    context.stage = new Kinetic.Stage({
-      container  : container
-      width      : 578
-      height     : 200
-    })
-    context.layer = new Kinetic.Layer()
-    context.stage.add(context.layer)
 
   Template.diagram.greeting = () ->
     return "Welcome to dia-study."
@@ -36,8 +77,8 @@ if root.Meteor.isClient
   Template.diagram.events = 'click button' : () ->
     graphNode =
       title: $("#form-title").val()
-      xpos : parseInt Math.random()*(context.stage.getWidth() - 100)
-      ypos : parseInt Math.random()*(context.stage.getHeight() - 50)
+      xpos : context.getRandomX()
+      ypos : context.getRandomY()
 
     if not GraphNodes.validate graphNode
       alert 'input invalid'
@@ -46,41 +87,11 @@ if root.Meteor.isClient
       if error
         console.log JSON.stringify error, null, 2
       else
-        $("#form-title").val("")
-        rect = new Kinetic.Rect({
-          x: graphNode.xpos
-          y: graphNode.ypos
-          width: 100
-          height: 50
-          fill: colorByName(graphNode.title)
-          stroke: "black"
-          strokeWidth: 4
-          draggable: true
-          id: result
-          name: graphNode.title
-        })
-        .on "dragmove", () ->
-          GraphNodes.update {_id: this.getId()}, { $set: xpos: this.attrs.x, ypos: this.attrs.y}
-          entry = GraphNodes.findOne _id: rect.getId()
-          if entry
-            console.log entry.title + ' ' + entry.xpos + ',' + entry.ypos
-        .on "mouseover", (event) ->
-          document.body.style.cursor = 'pointer'
-          event.targetNode.tween.play()
-        .on "mouseout", (event) ->
-          document.body.style.cursor = 'default'
-          event.targetNode.tween.reverse()
+        rect = createShape(graphNode, result)
         context.layer.add(rect)
-
-        rect.tween = new Kinetic.Tween({
-          node: rect
-          scaleX: 1.2
-          scaleY: 1.2
-          easing: Kinetic.Easings.EaseInOut
-          duration: 0.5
-        })
-
+        addTweenEffect(rect)
         context.layer.draw()
+        $("#form-title").val("")
 
 if root.Meteor.isServer
   Meteor.startup ->
