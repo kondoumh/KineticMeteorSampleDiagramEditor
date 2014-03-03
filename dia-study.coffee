@@ -56,12 +56,27 @@ if root.Meteor.isClient
           id: result
           name: graphNode.title
         })
-        rect.on "dragmove", () ->
+        .on "dragmove", () ->
           GraphNodes.update {_id: this.getId()}, { $set: xpos: this.attrs.x, ypos: this.attrs.y}
           entry = GraphNodes.findOne _id: rect.getId()
           if entry
             console.log entry.title + ' ' + entry.xpos + ',' + entry.ypos
+        .on "mouseover", (event) ->
+          document.body.style.cursor = 'pointer'
+          event.targetNode.tween.play()
+        .on "mouseout", (event) ->
+          document.body.style.cursor = 'default'
+          event.targetNode.tween.reverse()
         context.layer.add(rect)
+
+        rect.tween = new Kinetic.Tween({
+          node: rect
+          scaleX: 1.2
+          scaleY: 1.2
+          easing: Kinetic.Easings.EaseInOut
+          duration: 0.5
+        })
+
         context.layer.draw()
 
 if root.Meteor.isServer
