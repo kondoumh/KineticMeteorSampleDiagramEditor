@@ -7,6 +7,16 @@ root = global ? window
     return false
   return true
 
+colorByName = (name) ->
+  if name.length % 2 == 0
+    "green"
+  else if name.length % 3 == 0
+    "red"
+  else if name.length % 5 == 0
+    "pink"
+  else
+    "yellow"
+
 if root.Meteor.isClient
   context = {}
 
@@ -36,20 +46,13 @@ if root.Meteor.isClient
       if error
         console.log JSON.stringify error, null, 2
       else
-        fill = "yellow"
-        if graphNode.title.length % 2 == 0
-          fill = "green"
-        else if graphNode.title.length % 3 == 0
-          fill = "red"
-        else if graphNode.title.length % 5 == 0
-          fill = "pink"
         $("#form-title").val("")
         rect = new Kinetic.Rect({
           x: graphNode.xpos
           y: graphNode.ypos
           width: 100
           height: 50
-          fill: fill
+          fill: colorByName(graphNode.title)
           stroke: "black"
           strokeWidth: 4
           draggable: true
