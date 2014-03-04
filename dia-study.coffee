@@ -59,6 +59,7 @@ buildContext = (context) ->
         strokeWidth: 4
       })
       context.layer.add line
+      line.moveToBottom()
       context.layer.draw()
 
   context.stage.add context.layer
