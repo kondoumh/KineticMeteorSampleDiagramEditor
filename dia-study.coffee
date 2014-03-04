@@ -18,17 +18,44 @@ EdgeAddingStatus =
   from: ''
   to: ''
 
-colorByName = (name) ->
-  if name.length % 5 is 0
-    'green'
-  else if name.length % 3 is 0
-    'red'
-  else if name.length % 2 is 0
-    'pink'
-  else
-    'yellow'
 
-buildContext = (context) ->
+###
+EdgeActions
+###
+labelEdgeAction = (event, node) ->
+  if edgeContext.addingEdge
+    if edgeContext.status is EdgeAddingStatus.nothing
+      edgeContext['from'] = node.getId()
+      edgeContext['startx'] = event.layerX
+      edgeContext['starty'] = event.layerY
+    else if edgeContext.status is EdgeAddingStatus.started
+      edgeContext['to'] = node.getId()
+      edgeContext['endx'] = event.layerX
+      edgeContext['endy'] = event.layerY
+
+layerEdgeAction = (event, layer) ->
+  if not edgeContext.addingEdge
+    return
+  if edgeContext.status is EdgeAddingStatus.nothing
+    edgeContext['status'] = EdgeAddingStatus.started
+    return
+  if edgeContext.status is EdgeAddingStatus.started
+    edgeContext['status'] = EdgeAddingStatus.end
+    edgeContext['status'] = EdgeAddingStatus.nothing
+    if edgeContext.from is edgeContext.to
+      return
+    line = new Kinetic.Line({
+      points: [edgeContext.startx, edgeContext.starty, edgeContext.endx, edgeContext.endy]
+      stroke: 'brack'
+      strokeWidth: 4
+    })
+    context.layer.add line
+    line.moveToBottom()
+    context.layer.draw()
+###
+###
+
+buildKineticContext = (context) ->
   context.stage = new Kinetic.Stage({
     container  : container
     width      : 578
@@ -36,31 +63,7 @@ buildContext = (context) ->
   })
   context.layer = new Kinetic.Layer()
   .on 'mouseup', (event) ->
-    if not edgeContext.addingEdge
-      console.log 'bye'
-      return
-    if edgeContext.status is EdgeAddingStatus.nothing
-      edgeContext['status'] = EdgeAddingStatus.started
-      console.log edgeContext.startx + ' ' + edgeContext.status
-      console.log 'from ' + edgeContext.from
-      return
-    if edgeContext.status is EdgeAddingStatus.started
-      edgeContext['status'] = EdgeAddingStatus.end
-      console.log edgeContext.endx + ' ' + edgeContext.status
-      console.log 'from ' + edgeContext.from + ' to ' + edgeContext.to
-      edgeContext['status'] = EdgeAddingStatus.nothing
-      console.log 'ready'
-      if edgeContext.from is edgeContext.to
-        return
-      console.log 'go'
-      line = new Kinetic.Line({
-        points: [edgeContext.startx, edgeContext.starty, edgeContext.endx, edgeContext.endy]
-        stroke: 'brack'
-        strokeWidth: 4
-      })
-      context.layer.add line
-      line.moveToBottom()
-      context.layer.draw()
+    layerEdgeAction(event, @)
 
   context.stage.add context.layer
   context.getRandomX = () ->
@@ -73,8 +76,17 @@ buildContext = (context) ->
     addTweenEffect label.getText()
     context.layer.draw()
 
+addTweenEffect = (node) ->
+  node.tween = new Kinetic.Tween({
+    node: node
+    scaleX: 1.2
+    scaleY: 1.2
+    easing: Kinetic.Easings.EaseInOut
+    duration: 0.5
+  })
+
 createShape = (graphNode, id) ->
-  label = new Kinetic.Label({
+  new Kinetic.Label({
     x: graphNode.xpos
     y: graphNode.ypos
     width: 100
@@ -99,44 +111,28 @@ createShape = (graphNode, id) ->
       @getTag().tween.reverse()
       @getText().tween.reverse()
   .on 'mouseup', (event) ->
-    console.log 'mouseup on label'
-    if edgeContext.addingEdge
-      if edgeContext.status is EdgeAddingStatus.nothing
-        console.log 'aaa ' + edgeContext.status
-        edgeContext['from'] = @getId()
-        console.log event
-        edgeContext['startx'] = event.layerX
-        edgeContext['starty'] = event.layerY
-      else if edgeContext.status is EdgeAddingStatus.started
-        console.log 'bbb ' + edgeContext.status
-        edgeContext['to'] = @getId()
-        edgeContext['endx'] = event.layerX
-        edgeContext['endy'] = event.layerY
-
-
-  label.add new Kinetic.Tag({
-    fill: colorByName(graphNode.title)
+    labelEdgeAction(event, @)
+  .add new Kinetic.Tag({
+    fill: ((length) ->
+      if length % 5 is 0
+        'green'
+      else if length % 3 is 0
+        'red'
+      else if length % 2 is 0
+        'pink'
+      else
+        'yellow'
+      )(graphNode.title.length)
     stroke: 'black'
     strokeWidth: 4
   })
-
-  label.add new Kinetic.Text({
+  .add new Kinetic.Text({
     text: graphNode.title
     fontSize: 18
     padding: 10
     fill: 'black'
   })
-  label
 
-
-addTweenEffect = (node) ->
-  node.tween = new Kinetic.Tween({
-    node: node
-    scaleX: 1.2
-    scaleY: 1.2
-    easing: Kinetic.Easings.EaseInOut
-    duration: 0.5
-  })
 
 createGraphNode = (name, context) ->
   graphNode =
@@ -160,7 +156,7 @@ if root.Meteor.isClient
   context = {}
 
   Meteor.startup ->
-    buildContext context
+    buildKineticContext context
     createGraphNode('ふなっしー', context);
     createGraphNode('ヒャハー', context);
     console.log 'client ready.'
