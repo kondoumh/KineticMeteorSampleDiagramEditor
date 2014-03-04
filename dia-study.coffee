@@ -4,11 +4,11 @@
   if graphNode.title then true else false
 
 colorByName = (name) ->
-  if name.length % 5 == 0
+  if name.length % 5 is 0
     'green'
-  else if name.length % 3 == 0
+  else if name.length % 3 is 0
     'red'
-  else if name.length % 2 == 0
+  else if name.length % 2 is 0
     'pink'
   else
     'yellow'
@@ -42,18 +42,18 @@ createShape = (graphNode, id) ->
     name: graphNode.title
   })
   .on 'dragmove', () ->
-    GraphNodes.update {_id: this.getId()}, { $set: xpos: this.attrs.x, ypos: this.attrs.y}
-    entry = GraphNodes.findOne _id: this.getId()
+    GraphNodes.update {_id: @getId()}, { $set: xpos: @attrs.x, ypos: @attrs.y}
+    entry = GraphNodes.findOne _id: @getId()
     if entry
       console.log entry.title + ' ' + entry.xpos + ',' + entry.ypos
   .on 'mouseover', () ->
     document.body.style.cursor = 'pointer'
-    this.getTag().tween.play()
-    this.getText().tween.play()
+    @getTag().tween.play()
+    @getText().tween.play()
   .on 'mouseout', () ->
     document.body.style.cursor = 'default'
-    this.getTag().tween.reverse()
-    this.getText().tween.reverse()
+    @getTag().tween.reverse()
+    @getText().tween.reverse()
 
   label.add new Kinetic.Tag({
     fill: colorByName(graphNode.title)
