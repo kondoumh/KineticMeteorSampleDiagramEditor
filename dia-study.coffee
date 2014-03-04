@@ -3,6 +3,21 @@
 @GraphNodes.validate = (graphNode) ->
   if graphNode.title then true else false
 
+EdgeAddingStatus =
+  nothing: 0
+  started: 1
+  end:     2
+
+@edgeContext =
+  addingEdge: false
+  status: EdgeAddingStatus.nothing
+  startx: 0
+  starty: 0
+  endx: 0
+  endy: 0
+  from: ''
+  to: ''
+
 colorByName = (name) ->
   if name.length % 5 is 0
     'green'
@@ -20,6 +35,29 @@ buildContext = (context) ->
     height     : 200
   })
   context.layer = new Kinetic.Layer()
+  .on 'mouseup', (event) ->
+    if not edgeContext.addingEdge
+      console.log 'bye'
+      return
+    if edgeContext.status is EdgeAddingStatus.nothing
+      edgeContext['status'] = EdgeAddingStatus.started
+      edgeContext['startx'] = event.screenX
+      edgeContext['starty'] = event.screenY
+      console.log edgeContext.startx + ' ' + edgeContext.status
+      console.log 'from ' + edgeContext.from
+      return
+    if edgeContext.status is EdgeAddingStatus.started
+      edgeContext['status'] = EdgeAddingStatus.end
+      edgeContext['endx'] = event.screenX
+      edgeContext['endy'] = event.screenY
+      console.log edgeContext.endx + ' ' + edgeContext.status
+      console.log 'from ' + edgeContext.from + ' to ' + edgeContext.to
+      edgeContext['status'] = EdgeAddingStatus.nothing
+      console.log 'ready'
+      if edgeContext.from is edgeContext.to
+        return
+      console.log 'go'
+
   context.stage.add context.layer
   context.getRandomX = () ->
     parseInt Math.random()*(context.stage.getWidth() - 100)
@@ -54,6 +92,15 @@ createShape = (graphNode, id) ->
     document.body.style.cursor = 'default'
     @getTag().tween.reverse()
     @getText().tween.reverse()
+  .on 'mouseup', () ->
+    console.log 'mouseup on label'
+    if edgeContext.addingEdge
+      if edgeContext.status is EdgeAddingStatus.nothing
+        console.log 'aaa ' + edgeContext.status
+        edgeContext['from'] = @getId()
+      else if edgeContext.status is EdgeAddingStatus.started
+        console.log 'bbb ' + edgeContext.status
+        edgeContext['to'] = @getId()
 
   label.add new Kinetic.Tag({
     fill: colorByName(graphNode.title)
@@ -92,22 +139,26 @@ if root.Meteor.isClient
   Template.diagram.greeting = () ->
     'Welcome to dia-study.'
 
-  Template.diagram.events = 'click button' : () ->
-    graphNode =
-      title: $('#form-title').val()
-      xpos : context.getRandomX()
-      ypos : context.getRandomY()
+  Template.diagram.events({
+    'click #add-node' : () ->
+      graphNode =
+        title: $('#form-title').val()
+        xpos : context.getRandomX()
+        ypos : context.getRandomY()
 
-    if not GraphNodes.validate graphNode
-      alert 'input invalid'
-      return
-    inserted = GraphNodes.insert graphNode, (error, result) ->
-      if error
-        console.log JSON.stringify error, null, 2
-      else
-        context.registerShape createShape(graphNode, result)
-        $('#form-title').val ''
+      if not GraphNodes.validate graphNode
+        alert 'input invalid'
+        return
+      inserted = GraphNodes.insert graphNode, (error, result) ->
+        if error
+          console.log JSON.stringify error, null, 2
+        else
+          context.registerShape createShape(graphNode, result)
+          $('#form-title').val ''
 
+    'change #edge-mode' : (event) ->
+      edgeContext['addingEdge'] = event.srcElement.checked
+  })
 
 if root.Meteor.isServer
   Meteor.startup ->
