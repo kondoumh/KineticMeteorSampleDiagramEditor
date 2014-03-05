@@ -1,3 +1,6 @@
+class GraphNode
+  constructor: (@title, @xpos, @ypos) ->
+
 @GraphNodes = new Meteor.Collection 'GraphNodes'
 
 @GraphNodes.validate = (graphNode) ->
@@ -146,12 +149,8 @@ createShape = (graphNode, id) ->
     fill: 'black'
   })
 
-
-createGraphNode = (name, context) ->
-  graphNode =
-    title: name
-    xpos : context.getRandomX()
-    ypos : context.getRandomY()
+createGraphNode = (title) ->
+  graphNode = new GraphNode title, context.getRandomX(), context.getRandomY()
 
   if not GraphNodes.validate graphNode
     alert 'input invalid'
