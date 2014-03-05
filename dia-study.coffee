@@ -1,5 +1,7 @@
 class GraphNode
   constructor: (@title, @xpos, @ypos) ->
+  show: ->
+    "title:#{@title} x:#{@xpos} y:#{@ypos}"
 
 @GraphNodes = new Meteor.Collection 'GraphNodes'
 
@@ -12,8 +14,19 @@ class Edge
   @starty: 0
   @endx: 0
   @endy: 0
+  show: ->
+    "from:#{@from}(#{@startx}, #{@starty}) to:#{@to}(#{@endx}, #{@endy})"
 
 @Edges = new Meteor.Collection 'Edges'
+
+
+class Graph
+  addNode: (graphNode) ->
+    console.log graphNode.show()
+  addEdge: (edge) ->
+    console.log edge.show()
+
+@graph = new Graph
 
 EdgeAddingStatus =
   nothing: 0
@@ -61,6 +74,7 @@ layerEdgeAction = (event, layer) ->
     edge.starty = edgeContext.starty
     edge.endx = edgeContext.endx
     edge.endy = edgeContext.endy
+    graph.addEdge edge
     Edges.insert edge, (error, result) ->
       if error
         console.log JSON.stringify error, null, 2
@@ -156,6 +170,7 @@ createShape = (graphNode, id) ->
 
 createGraphNode = (title) ->
   graphNode = new GraphNode title, context.getRandomX(), context.getRandomY()
+  graph.addNode graphNode
 
   if not GraphNodes.validate graphNode
     alert 'input invalid'
