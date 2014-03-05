@@ -3,6 +3,8 @@
 @GraphNodes.validate = (graphNode) ->
   if graphNode.title then true else false
 
+@Edges = new Meteor.Collection 'Edges'
+
 EdgeAddingStatus =
   nothing: 0
   started: 1
@@ -44,14 +46,25 @@ layerEdgeAction = (event, layer) ->
     edgeContext['status'] = EdgeAddingStatus.nothing
     if edgeContext.from is edgeContext.to
       return
-    line = new Kinetic.Line({
-      points: [edgeContext.startx, edgeContext.starty, edgeContext.endx, edgeContext.endy]
-      stroke: 'brack'
-      strokeWidth: 4
-    })
-    context.layer.add line
-    line.moveToBottom()
-    context.layer.draw()
+    edge =
+      from: edgeContext.from
+      to: edgeContext.to
+      startx: edgeContext.startx
+      starty: edgeContext.starty
+      endx: edgeContext.endx
+      endy: edgeContext.endy
+    Edges.insert edge, (error, result) ->
+      if error
+        console.log JSON.stringify error, null, 2
+      else
+        line = new Kinetic.Line({
+          points: [edge.startx, edge.starty, edge.endx, edge.endy]
+          stroke: 'brack'
+          strokeWidth: 4
+        })
+        layer.add line
+        line.moveToBottom()
+        layer.draw()
 ###
 ###
 
