@@ -6,6 +6,13 @@ class GraphNode
 @GraphNodes.validate = (graphNode) ->
   if graphNode.title then true else false
 
+class Edge
+  constructor: (@from, @to) ->
+  @startx: 0
+  @starty: 0
+  @endx: 0
+  @endy: 0
+
 @Edges = new Meteor.Collection 'Edges'
 
 EdgeAddingStatus =
@@ -49,13 +56,11 @@ layerEdgeAction = (event, layer) ->
     edgeContext['status'] = EdgeAddingStatus.nothing
     if edgeContext.from is edgeContext.to
       return
-    edge =
-      from: edgeContext.from
-      to: edgeContext.to
-      startx: edgeContext.startx
-      starty: edgeContext.starty
-      endx: edgeContext.endx
-      endy: edgeContext.endy
+    edge = new Edge(edgeContext.from, edgeContext.to)
+    edge.startx = edgeContext.startx
+    edge.starty = edgeContext.starty
+    edge.endx = edgeContext.endx
+    edge.endy = edgeContext.endy
     Edges.insert edge, (error, result) ->
       if error
         console.log JSON.stringify error, null, 2
