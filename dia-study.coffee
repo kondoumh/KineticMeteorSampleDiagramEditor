@@ -50,6 +50,7 @@ class Graph
     node = GraphNodes.findOne _id: id
     if node
       console.log "#{node.title} #{node.xpos}  #{node.ypos}"
+    kContext.moveEdges(node)
 
 @graph = new Graph
 
@@ -127,6 +128,16 @@ class KineticContext
       easing: Kinetic.Easings.EaseInOut
       duration: 0.5
     })
+  moveEdges: (node) ->
+    found = Edges.find {from: node._id}
+    if (found)
+      edgeId = found.fetch()[0]._id
+      line = @layer.find("##{edgeId}")[0]
+      points = line.attrs.points
+      console.log line.points
+      line.points [node.xpos, node.ypos, points[2], points[3]]
+      console.log line.points
+      @layer.draw()
 
 @kContext = new KineticContext
 
@@ -185,6 +196,7 @@ class KineticFactory
       stroke: 'black'
       strokeWidth: 4
       id: id
+      name: 'test'
     })
     kContext.layer.add line
     line.moveToBottom()
