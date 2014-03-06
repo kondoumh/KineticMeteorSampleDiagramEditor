@@ -43,7 +43,7 @@ class Graph
         console.log JSON.stringify error, null, 2
       else
         console.log edge.show()
-        KineticFactory.createLine(edge, result)
+        kContext.registerLine KineticFactory.createLine(edge, result)
 
   moveNode: (id, x, y) ->
     GraphNodes.update {_id: id}, {$set: xpos: x, ypos: y}
@@ -117,10 +117,14 @@ class KineticContext
     parseInt Math.random()*(@stage.getHeight() - 50)
   registerShape: (label) ->
     @layer.add label
-    addTweenEffect label.getTag()
-    addTweenEffect label.getText()
+    applyTweenTo label.getTag()
+    applyTweenTo label.getText()
     @layer.draw()
-  addTweenEffect = (node) ->
+  registerLine: (line) ->
+    @layer.add line
+    line.moveToBottom()
+    @layer.draw()
+  applyTweenTo = (node) ->
     node.tween = new Kinetic.Tween({
       node: node
       scaleX: 1.2
@@ -134,9 +138,7 @@ class KineticContext
       edgeId = found.fetch()[0]._id
       line = @layer.find("##{edgeId}")[0]
       points = line.attrs.points
-      console.log line.points
       line.points [node.xpos, node.ypos, points[2], points[3]]
-      console.log line.points
       @layer.draw()
 
 @kContext = new KineticContext
@@ -198,9 +200,6 @@ class KineticFactory
       id: id
       name: 'test'
     })
-    kContext.layer.add line
-    line.moveToBottom()
-    kContext.layer.draw()
 
 
 root = global ? window
@@ -211,7 +210,9 @@ if root.Meteor.isClient
     kContext.build()
     graph.addNode 'ふなっしー'
     graph.addNode 'ヒャハー'
-    console.log 'client ready.'
+    console.log 'client ready. ' + (->
+      d = new Date
+      "#{d.getHours()}:#{d.getMinutes()}:#{d.getSeconds()}")()
 
   Template.diagram.greeting = () ->
     'Welcome to dia-study.'
