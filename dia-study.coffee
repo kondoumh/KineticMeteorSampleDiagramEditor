@@ -133,20 +133,23 @@ class KineticContext
       duration: 0.5
     })
   moveEdges: (node) ->
-    from = Edges.find({from: node._id}).fetch()[0]
-    to = Edges.find({to: node._id}).fetch()[0]
-    if (from)
-      edgeId = from._id
-      line = @layer.find("##{edgeId}")[0]
-      points = line.attrs.points
-      line.points [node.xpos, node.ypos, points[2], points[3]]
-      @layer.draw()
-    if (to)
-      edgeId = to._id
-      line = @layer.find("##{edgeId}")[0]
-      points = line.attrs.points
-      line.points [points[0], points[1], node.xpos, node.ypos]
-      @layer.draw()
+    froms = Edges.find({from: node._id}).fetch()
+    tos = Edges.find({to: node._id}).fetch()
+    l = @layer
+    for from in froms
+      do (from) ->
+        edgeId = from._id
+        line = l.find("##{edgeId}")[0]
+        points = line.attrs.points
+        line.points [node.xpos, node.ypos, points[2], points[3]]
+        l.draw()
+    for to in tos
+      do (to) ->
+        edgeId = to._id
+        line = l.find("##{edgeId}")[0]
+        points = line.attrs.points
+        line.points [points[0], points[1], node.xpos, node.ypos]
+        l.draw()
 
 @kContext = new KineticContext
 
