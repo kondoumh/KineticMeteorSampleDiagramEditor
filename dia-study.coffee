@@ -131,6 +131,8 @@ createShape = (graphNode, id) ->
     name: graphNode.title
   })
   .on 'dragmove', () ->
+    console.log "#{@attrs.x}, #{@attrs.y}"
+  .on 'dragend', () ->
     GraphNodes.update {_id: @getId()}, { $set: xpos: @attrs.x, ypos: @attrs.y}
     entry = GraphNodes.findOne _id: @getId()
     if entry
