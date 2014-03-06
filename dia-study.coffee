@@ -19,10 +19,9 @@ class Edge
 
 @Edges = new Meteor.Collection 'Edges'
 
-
 class Graph
   addNode: (title) ->
-    graphNode = new GraphNode title, context.getRandomX(), context.getRandomY()
+    graphNode = new GraphNode title, kContext.getRandomX(), kContext.getRandomY()
     console.log graphNode.show()
     if not GraphNodes.validate graphNode
       alert 'input invalid'
@@ -31,7 +30,7 @@ class Graph
       if error
         console.log JSON.stringify error, null, 2
       else
-        context.registerShape createShape(graphNode, result)
+        kContext.registerShape createShape(graphNode, result)
 
   addEdge: (edgeContext) ->
     edge = new Edge(edgeContext.from, edgeContext.to)
@@ -100,26 +99,28 @@ layerEdgeAction = (event, layer) ->
 ###
 ###
 
-buildKineticContext = (context) ->
-  context.stage = new Kinetic.Stage({
-    container  : container
-    width      : 578
-    height     : 200
-  })
-  context.layer = new Kinetic.Layer()
-  .on 'mouseup', (event) ->
-    layerEdgeAction(event, @)
-
-  context.stage.add context.layer
-  context.getRandomX = () ->
-    parseInt Math.random()*(context.stage.getWidth() - 100)
-  context.getRandomY = () ->
-    parseInt Math.random()*(context.stage.getHeight() - 50)
-  context.registerShape = (label) ->
-    context.layer.add label
+class KineticContext
+  build: ->
+    @stage = new Kinetic.Stage({
+      container  : container
+      width      : 578
+      height     : 200
+    })
+    @layer = new Kinetic.Layer()
+    .on 'mouseup', (event) ->
+      layerEdgeAction(event, @)
+    @stage.add @layer
+  getRandomX: ->
+    parseInt Math.random()*(@stage.getWidth() - 100)
+  getRandomY: ->
+    parseInt Math.random()*(@stage.getHeight() - 50)
+  registerShape: (label) ->
+    @layer.add label
     addTweenEffect label.getTag()
     addTweenEffect label.getText()
-    context.layer.draw()
+    @layer.draw()
+
+@kContext = new KineticContext
 
 addTweenEffect = (node) ->
   node.tween = new Kinetic.Tween({
@@ -184,18 +185,17 @@ createLine = (edge, id) ->
     strokeWidth: 4
     id: id
   })
-  context.layer.add line
+  kContext.layer.add line
   line.moveToBottom()
-  context.layer.draw()
+  kContext.layer.draw()
 
 
 root = global ? window
 
 if root.Meteor.isClient
-  context = {}
 
   Meteor.startup ->
-    buildKineticContext context
+    kContext.build()
     graph.addNode 'ふなっしー'
     graph.addNode 'ヒャハー'
     console.log 'client ready.'
