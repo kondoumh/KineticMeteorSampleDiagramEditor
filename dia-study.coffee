@@ -50,7 +50,7 @@ class Graph
     node = GraphNodes.findOne _id: id
     if node
       console.log "#{node.title} #{node.xpos}  #{node.ypos}"
-    kContext.moveEdges(node)
+      kContext.moveEdges(node)
 
 @graph = new Graph
 
@@ -133,12 +133,19 @@ class KineticContext
       duration: 0.5
     })
   moveEdges: (node) ->
-    found = Edges.find {from: node._id}
-    if (found)
-      edgeId = found.fetch()[0]._id
+    from = Edges.find({from: node._id}).fetch()[0]
+    to = Edges.find({to: node._id}).fetch()[0]
+    if (from)
+      edgeId = from._id
       line = @layer.find("##{edgeId}")[0]
       points = line.attrs.points
       line.points [node.xpos, node.ypos, points[2], points[3]]
+      @layer.draw()
+    if (to)
+      edgeId = to._id
+      line = @layer.find("##{edgeId}")[0]
+      points = line.attrs.points
+      line.points [points[0], points[1], node.xpos, node.ypos]
       @layer.draw()
 
 @kContext = new KineticContext
@@ -158,7 +165,7 @@ class KineticFactory
     .on 'dragmove', () ->
       console.log "#{@attrs.x}, #{@attrs.y}"
     .on 'dragend', () ->
-      graph.moveNode(@getId(), @attrs.x, @attrs.y)
+      graph.moveNode @getId(), @attrs.x, @attrs.y
     .on 'mouseover', () ->
       document.body.style.cursor = 'pointer'
       if edgeContext.addingEdge
@@ -187,8 +194,8 @@ class KineticFactory
     })
     .add new Kinetic.Text({
       text: graphNode.title
-      fontSize: 18
-      padding: 10
+      fontSize: 14
+      padding: 8
       fill: 'black'
     })
 
