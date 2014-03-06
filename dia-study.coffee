@@ -21,10 +21,36 @@ class Edge
 
 
 class Graph
-  addNode: (graphNode) ->
+  addNode: (title) ->
+    graphNode = new GraphNode title, context.getRandomX(), context.getRandomY()
     console.log graphNode.show()
-  addEdge: (edge) ->
-    console.log edge.show()
+    if not GraphNodes.validate graphNode
+      alert 'input invalid'
+      return
+    inserted = GraphNodes.insert graphNode, (error, result) ->
+      if error
+        console.log JSON.stringify error, null, 2
+      else
+        context.registerShape createShape(graphNode, result)
+
+  addEdge: (edgeContext) ->
+    edge = new Edge(edgeContext.from, edgeContext.to)
+    edge.startx = edgeContext.startx
+    edge.starty = edgeContext.starty
+    edge.endx = edgeContext.endx
+    edge.endy = edgeContext.endy
+    Edges.insert edge, (error, result) ->
+      if error
+        console.log JSON.stringify error, null, 2
+      else
+        console.log edge.show()
+        createLine(edge, result)
+
+  moveNode: (id, x, y) ->
+    GraphNodes.update {_id: id}, {$set: xpos: x, ypos: y}
+    node = GraphNodes.findOne _id: id
+    if node
+      console.log "#{node.title} #{node.xpos}  #{node.ypos}"
 
 @graph = new Graph
 
@@ -69,24 +95,8 @@ layerEdgeAction = (event, layer) ->
     edgeContext['status'] = EdgeAddingStatus.nothing
     if edgeContext.from is edgeContext.to
       return
-    edge = new Edge(edgeContext.from, edgeContext.to)
-    edge.startx = edgeContext.startx
-    edge.starty = edgeContext.starty
-    edge.endx = edgeContext.endx
-    edge.endy = edgeContext.endy
-    graph.addEdge edge
-    Edges.insert edge, (error, result) ->
-      if error
-        console.log JSON.stringify error, null, 2
-      else
-        line = new Kinetic.Line({
-          points: [edge.startx, edge.starty, edge.endx, edge.endy]
-          stroke: 'brack'
-          strokeWidth: 4
-        })
-        layer.add line
-        line.moveToBottom()
-        layer.draw()
+    graph.addEdge(edgeContext)
+
 ###
 ###
 
@@ -133,10 +143,7 @@ createShape = (graphNode, id) ->
   .on 'dragmove', () ->
     console.log "#{@attrs.x}, #{@attrs.y}"
   .on 'dragend', () ->
-    GraphNodes.update {_id: @getId()}, { $set: xpos: @attrs.x, ypos: @attrs.y}
-    entry = GraphNodes.findOne _id: @getId()
-    if entry
-      console.log entry.title + ' ' + entry.xpos + ',' + entry.ypos
+    graph.moveNode(@getId(), @attrs.x, @attrs.y)
   .on 'mouseover', () ->
     document.body.style.cursor = 'pointer'
     if edgeContext.addingEdge
@@ -170,18 +177,16 @@ createShape = (graphNode, id) ->
     fill: 'black'
   })
 
-createGraphNode = (title) ->
-  graphNode = new GraphNode title, context.getRandomX(), context.getRandomY()
-  graph.addNode graphNode
-
-  if not GraphNodes.validate graphNode
-    alert 'input invalid'
-    return
-  inserted = GraphNodes.insert graphNode, (error, result) ->
-    if error
-      console.log JSON.stringify error, null, 2
-    else
-      context.registerShape createShape(graphNode, result)
+createLine = (edge, id) ->
+  line = new Kinetic.Line({
+    points: [edge.startx, edge.starty, edge.endx, edge.endy]
+    stroke: 'black'
+    strokeWidth: 4
+    id: id
+  })
+  context.layer.add line
+  line.moveToBottom()
+  context.layer.draw()
 
 
 root = global ? window
@@ -191,8 +196,8 @@ if root.Meteor.isClient
 
   Meteor.startup ->
     buildKineticContext context
-    createGraphNode('ふなっしー', context);
-    createGraphNode('ヒャハー', context);
+    graph.addNode 'ふなっしー'
+    graph.addNode 'ヒャハー'
     console.log 'client ready.'
 
   Template.diagram.greeting = () ->
@@ -200,7 +205,7 @@ if root.Meteor.isClient
 
   Template.diagram.events({
     'click #add-node' : () ->
-      createGraphNode $('#form-title').val(), context
+      graph.addNode $('#form-title').val()
       $('#form-title').val ''
 
     'change #edge-mode' : (event) ->
