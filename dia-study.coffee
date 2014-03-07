@@ -150,15 +150,17 @@ class KineticContext
     _.each froms, (from) ->
       edgeId = from._id
       line = l.find("##{edgeId}")[0]
-      points = line.attrs.points
-      line.points [g.centerX(), g.centerY(), points[2], points[3]]
-      l.draw()
+      if line
+        points = line.attrs.points
+        line.points [g.centerX(), g.centerY(), points[2], points[3]]
+        l.draw()
     _.each tos, (to) ->
       edgeId = to._id
       line = l.find("##{edgeId}")[0]
-      points = line.attrs.points
-      line.points [points[0], points[1], g.centerX(), g.centerY()]
-      l.draw()
+      if line
+        points = line.attrs.points
+        line.points [points[0], points[1], g.centerX(), g.centerY()]
+        l.draw()
 
 @kContext = new KineticContext
 
@@ -174,8 +176,13 @@ class KineticFactory
       id: id
       name: graphNode.title
     })
-    .on 'dragmove', () ->
-      console.log "#{@attrs.x}, #{@attrs.y}"
+    .on 'dragmove', (event) ->
+      node = GraphNodes.findOne _id: @getId()
+      node.xpos = event.offsetX
+      node.ypos = event.offsetY
+      if node
+        console.log "#{@attrs.x}, #{@attrs.y}"
+        kContext.moveEdges node
     .on 'dragend', () ->
       graph.moveNode @getId(), @attrs.x, @attrs.y
     .on 'mouseover', () ->
