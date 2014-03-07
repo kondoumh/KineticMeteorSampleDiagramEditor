@@ -64,6 +64,10 @@ class Graph
 
 @graph = new Graph
 
+###
+EdgeActions
+###
+
 EdgeAddingStatus =
   nothing: 0
   started: 1
@@ -79,10 +83,6 @@ EdgeAddingStatus =
   from: ''
   to: ''
 
-
-###
-EdgeActions
-###
 labelEdgeAction = (event, shape) ->
   if edgeContext.addingEdge
     if edgeContext.status is EdgeAddingStatus.nothing
@@ -108,7 +108,21 @@ layerEdgeAction = (event) ->
     graph.addEdge(edgeContext)
 
 ###
+DragActions
 ###
+dragStartAction = (event, shape) ->
+  console.log 'drag began'
+
+dragMoveAction = (event, shape) ->
+  node = GraphNodes.findOne _id: shape.getId()
+  node.xpos = event.offsetX
+  node.ypos = event.offsetY
+  if node
+    console.log "#{shape.attrs.x}, #{shape.attrs.y}"
+    kContext.moveEdges node
+
+dragEndAction = (shape) ->
+  graph.moveNode shape.getId(), shape.attrs.x, shape.attrs.y
 
 class KineticContext
   build: ->
@@ -176,15 +190,12 @@ class KineticFactory
       id: id
       name: graphNode.title
     })
+    .on 'dragstart', () ->
+      dragStartAction(event, @)
     .on 'dragmove', (event) ->
-      node = GraphNodes.findOne _id: @getId()
-      node.xpos = event.offsetX
-      node.ypos = event.offsetY
-      if node
-        console.log "#{@attrs.x}, #{@attrs.y}"
-        kContext.moveEdges node
+      dragMoveAction(event, @)
     .on 'dragend', () ->
-      graph.moveNode @getId(), @attrs.x, @attrs.y
+      dragEndAction(@)
     .on 'mouseover', () ->
       document.body.style.cursor = 'pointer'
       if edgeContext.addingEdge
