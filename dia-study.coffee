@@ -110,19 +110,30 @@ layerEdgeAction = (event) ->
 ###
 DragActions
 ###
+@dragContext =
+  nodeId:''
+  node:null
+  shape:null
+  froms:[]
+  tos:[]
+
 dragStartAction = (event, shape) ->
   console.log 'drag began'
+  dragContext.nodeId = shape.getId()
+  node = GraphNodes.findOne _id: shape.getId()
+  if node
+    node.xpos = event.offsetX
+    node.ypos = event.offsetY
+    dragContext.node = node
 
 dragMoveAction = (event, shape) ->
-  node = GraphNodes.findOne _id: shape.getId()
-  node.xpos = event.offsetX
-  node.ypos = event.offsetY
-  if node
-    console.log "#{shape.attrs.x}, #{shape.attrs.y}"
-    kContext.moveEdges node
+  console.log "#{shape.attrs.x}, #{shape.attrs.y}"
+  dragContext.node.xpos = event.offsetX
+  dragContext.node.ypos = event.offsetY
+  kContext.moveEdges dragContext.node
 
 dragEndAction = (shape) ->
-  graph.moveNode shape.getId(), shape.attrs.x, shape.attrs.y
+  graph.moveNode dragContext.nodeId, shape.attrs.x, shape.attrs.y
 
 class KineticContext
   build: ->
