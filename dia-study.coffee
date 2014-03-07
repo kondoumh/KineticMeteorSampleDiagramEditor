@@ -1,7 +1,15 @@
 class GraphNode
   constructor: (@title, @xpos, @ypos) ->
-  show: ->
-    "title:#{@title} x:#{@xpos} y:#{@ypos}"
+  @width:0
+  @height:0
+  centerX: -> @xpos + @width/2
+  centerY: -> @ypos + @height/2
+  @fromAttrs:(node) ->
+    g = new GraphNode(node.title, node.xpos, node.ypos)
+    g.width = node.width
+    g.height = node.height
+    g
+  show: -> "title:#{@title} x:#{@xpos} y:#{@ypos}"
 
 @GraphNodes = new Meteor.Collection 'GraphNodes'
 
@@ -21,16 +29,18 @@ class Edge
 
 class Graph
   addNode: (title) ->
-    graphNode = new GraphNode title, kContext.getRandomX(), kContext.getRandomY()
+    graphNode = new GraphNode title, kContext.randomX(), kContext.randomY()
     console.log graphNode.show()
     if not GraphNodes.validate graphNode
       alert 'input invalid'
       return
-    inserted = GraphNodes.insert graphNode, (error, result) ->
+    inserted = GraphNodes.insert graphNode, (error, id) ->
       if error
         console.log JSON.stringify error, null, 2
       else
-        kContext.registerShape KineticFactory.createShape(graphNode, result)
+        s = KineticFactory.createShape(graphNode, id)
+        GraphNodes.update {_id: id}, {$set: width: s.width(), height: s.height() }
+        kContext.registerShape s
 
   addEdge: (edgeContext) ->
     edge = new Edge(edgeContext.from, edgeContext.to)
@@ -49,7 +59,7 @@ class Graph
     GraphNodes.update {_id: id}, {$set: xpos: x, ypos: y}
     node = GraphNodes.findOne _id: id
     if node
-      console.log "#{node.title} #{node.xpos}  #{node.ypos}"
+      console.log "#{node.title} #{node.xpos} #{node.ypos}"
       kContext.moveEdges(node)
 
 @graph = new Graph
@@ -73,18 +83,18 @@ EdgeAddingStatus =
 ###
 EdgeActions
 ###
-labelEdgeAction = (event, node) ->
+labelEdgeAction = (event, shape) ->
   if edgeContext.addingEdge
     if edgeContext.status is EdgeAddingStatus.nothing
-      edgeContext['from'] = node.getId()
-      edgeContext['startx'] = event.layerX
-      edgeContext['starty'] = event.layerY
+      edgeContext['from'] = shape.getId()
+      edgeContext['startx'] = shape.x() + shape.width()/2
+      edgeContext['starty'] = shape.y() + shape.height()/2
     else if edgeContext.status is EdgeAddingStatus.started
-      edgeContext['to'] = node.getId()
-      edgeContext['endx'] = event.layerX
-      edgeContext['endy'] = event.layerY
+      edgeContext['to'] = shape.getId()
+      edgeContext['endx'] = shape.x() + shape.width()/2
+      edgeContext['endy'] = shape.y() + shape.height()/2
 
-layerEdgeAction = (event, layer) ->
+layerEdgeAction = (event) ->
   if not edgeContext.addingEdge
     return
   if edgeContext.status is EdgeAddingStatus.nothing
@@ -109,11 +119,11 @@ class KineticContext
     })
     @layer = new Kinetic.Layer()
     .on 'mouseup', (event) ->
-      layerEdgeAction(event, @)
+      layerEdgeAction(event)
     @stage.add @layer
-  getRandomX: ->
+  randomX: ->
     parseInt Math.random()*(@stage.getWidth() - 100)
-  getRandomY: ->
+  randomY: ->
     parseInt Math.random()*(@stage.getHeight() - 50)
   registerShape: (label) ->
     @layer.add label
@@ -136,17 +146,18 @@ class KineticContext
     froms = Edges.find({from: node._id}).fetch()
     tos = Edges.find({to: node._id}).fetch()
     l = @layer
+    g = GraphNode.fromAttrs(node)
     _.each froms, (from) ->
       edgeId = from._id
       line = l.find("##{edgeId}")[0]
       points = line.attrs.points
-      line.points [node.xpos, node.ypos, points[2], points[3]]
+      line.points [g.centerX(), g.centerY(), points[2], points[3]]
       l.draw()
     _.each tos, (to) ->
       edgeId = to._id
       line = l.find("##{edgeId}")[0]
       points = line.attrs.points
-      line.points [points[0], points[1], node.xpos, node.ypos]
+      line.points [points[0], points[1], g.centerX(), g.centerY()]
       l.draw()
 
 @kContext = new KineticContext
