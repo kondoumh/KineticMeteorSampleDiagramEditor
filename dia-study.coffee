@@ -55,12 +55,12 @@ class Graph
         console.log edge.show()
         kContext.registerLine KineticFactory.createLine(edge, result)
 
-  moveNode: (id, x, y) ->
+  moveNode: ->
+    id = dragContext.nodeId
+    x = dragContext.node.xpos
+    y = dragContext.node.ypos
     GraphNodes.update {_id: id}, {$set: xpos: x, ypos: y}
-    node = GraphNodes.findOne _id: id
-    if node
-      console.log "#{node.title} #{node.xpos} #{node.ypos}"
-      kContext.moveEdges(node)
+    console.log "#{dragContext.node.title} #{x} #{y}"
 
 @graph = new Graph
 
@@ -112,28 +112,34 @@ DragActions
 ###
 @dragContext =
   nodeId:''
-  node:null
-  shape:null
-  froms:[]
-  tos:[]
+  node: null
+  shape: null
+  froms: []
+  tos: []
 
-dragStartAction = (event, shape) ->
+dragStartAction = (shape) ->
   console.log 'drag began'
   dragContext.nodeId = shape.getId()
   node = GraphNodes.findOne _id: shape.getId()
   if node
-    node.xpos = event.offsetX
-    node.ypos = event.offsetY
-    dragContext.node = node
+    node.xpos = shape.x()
+    node.ypos = shape.y()
+    dragContext.node = GraphNode.fromAttrs(node)
+    dragContext.froms = Edges.find({from: node._id}).fetch()
+    dragContext.tos = Edges.find({to: node._id}).fetch()
 
-dragMoveAction = (event, shape) ->
+dragMoveAction = (shape) ->
   console.log "#{shape.attrs.x}, #{shape.attrs.y}"
-  dragContext.node.xpos = event.offsetX
-  dragContext.node.ypos = event.offsetY
-  kContext.moveEdges dragContext.node
+  dragContext.node.xpos = shape.x()
+  dragContext.node.ypos = shape.y()
+  kContext.dragEdges()
 
 dragEndAction = (shape) ->
-  graph.moveNode dragContext.nodeId, shape.attrs.x, shape.attrs.y
+  dragContext.node.xpos = shape.x()
+  dragContext.node.ypos = shape.y()
+  graph.moveNode()
+  kContext.dragEdges()
+  kContext.moveEdges()
 
 class KineticContext
   build: ->
@@ -167,25 +173,24 @@ class KineticContext
       easing: Kinetic.Easings.EaseInOut
       duration: 0.5
     })
-  moveEdges: (node) ->
-    froms = Edges.find({from: node._id}).fetch()
-    tos = Edges.find({to: node._id}).fetch()
+  dragEdges: ->
     l = @layer
-    g = GraphNode.fromAttrs(node)
-    _.each froms, (from) ->
+    g = dragContext.node
+    _.each dragContext.froms, (from) ->
       edgeId = from._id
       line = l.find("##{edgeId}")[0]
       if line
         points = line.attrs.points
         line.points [g.centerX(), g.centerY(), points[2], points[3]]
         l.draw()
-    _.each tos, (to) ->
+    _.each dragContext.tos, (to) ->
       edgeId = to._id
       line = l.find("##{edgeId}")[0]
       if line
         points = line.attrs.points
         line.points [points[0], points[1], g.centerX(), g.centerY()]
         l.draw()
+  moveEdges: ->
 
 @kContext = new KineticContext
 
@@ -202,9 +207,9 @@ class KineticFactory
       name: graphNode.title
     })
     .on 'dragstart', () ->
-      dragStartAction(event, @)
-    .on 'dragmove', (event) ->
-      dragMoveAction(event, @)
+      dragStartAction(@)
+    .on 'dragmove', () ->
+      dragMoveAction(@)
     .on 'dragend', () ->
       dragEndAction(@)
     .on 'mouseover', () ->
