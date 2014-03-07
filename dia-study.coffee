@@ -62,6 +62,14 @@ class Graph
     GraphNodes.update {_id: id}, {$set: xpos: x, ypos: y}
     console.log "#{dragContext.node.title} #{x} #{y}"
 
+  moveEdges: ->
+    x = dragContext.node.centerX()
+    y = dragContext.node.centerY()
+    _.each dragContext.froms, (from) ->
+      Edges.update {_id: from._id}, {$set: startx: x, starty:y}
+    _.each dragContext.tos, (to) ->
+      Edges.update {_id: to._id}, {$set: endx: x, endy:y}
+
 @graph = new Graph
 
 ###
@@ -139,7 +147,7 @@ dragEndAction = (shape) ->
   dragContext.node.ypos = shape.y()
   graph.moveNode()
   kContext.dragEdges()
-  kContext.moveEdges()
+  graph.moveEdges()
 
 class KineticContext
   build: ->
@@ -190,7 +198,6 @@ class KineticContext
         points = line.attrs.points
         line.points [points[0], points[1], g.centerX(), g.centerY()]
         l.draw()
-  moveEdges: ->
 
 @kContext = new KineticContext
 
