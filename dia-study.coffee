@@ -70,6 +70,17 @@ class Graph
     _.each dragContext.tos, (to) ->
       Edges.update {_id: to._id}, {$set: endx: x, endy:y}
 
+  getNode: (id) ->
+    node = GraphNodes.findOne _id: id
+    if node
+      GraphNode.fromAttrs(node)
+
+  findEdgesFrom: (nodeId) ->
+    Edges.find({from: nodeId}).fetch()
+
+  findEdgesTo: (nodeId) ->
+    Edges.find({to: nodeId}).fetch()
+
 @graph = new Graph
 
 ###
@@ -128,13 +139,13 @@ DragActions
 dragStartAction = (shape) ->
   console.log 'drag began'
   dragContext.nodeId = shape.getId()
-  node = GraphNodes.findOne _id: shape.getId()
+  node = graph.getNode shape.getId()
   if node
     node.xpos = shape.x()
     node.ypos = shape.y()
-    dragContext.node = GraphNode.fromAttrs(node)
-    dragContext.froms = Edges.find({from: node._id}).fetch()
-    dragContext.tos = Edges.find({to: node._id}).fetch()
+    dragContext.node = node
+    dragContext.froms = graph.findEdgesFrom shape.getId()
+    dragContext.tos = graph.findEdgesTo shape.getId()
 
 dragMoveAction = (shape) ->
   console.log "#{shape.attrs.x}, #{shape.attrs.y}"
