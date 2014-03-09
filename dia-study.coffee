@@ -168,7 +168,7 @@ class KineticContext
       height     : 200
     })
     @layer = new Kinetic.Layer()
-    .on 'mouseup', (event) ->
+    .on 'mouseup touchend', (event) ->
       layerEdgeAction(event)
     @stage.add @layer
   randomX: ->
