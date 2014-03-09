@@ -281,12 +281,13 @@ if root.Meteor.isClient
     kContext.build()
     graph.addNode 'ふなっしー'
     graph.addNode 'ヒャハー'
-    console.log 'client ready. ' + (->
+    console.log 'client ready.'
+
+  Template.diagram.greeting = () ->
+    'Welcome to dia-study. ' + (->
       d = new Date
       "#{d.getHours()}:#{d.getMinutes()}:#{d.getSeconds()}")()
 
-  Template.diagram.greeting = () ->
-    'Welcome to dia-study.'
 
   Template.diagram.events({
     'click #add-node' : () ->
