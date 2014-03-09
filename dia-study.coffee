@@ -168,7 +168,7 @@ class KineticContext
       height     : 200
     })
     @layer = new Kinetic.Layer()
-    .on 'mouseup touchend', (event) ->
+    .on 'mouseup tap', (event) ->
       layerEdgeAction(event)
     @stage.add @layer
   randomX: ->
@@ -230,17 +230,17 @@ class KineticFactory
       dragMoveAction(@)
     .on 'dragend', () ->
       dragEndAction(@)
-    .on 'mouseover', () ->
+    .on 'mouseover touchstart', () ->
       document.body.style.cursor = 'pointer'
       if edgeContext.addingEdge
         @getTag().tween.play()
         @getText().tween.play()
-    .on 'mouseout', () ->
+    .on 'mouseout touchend', () ->
       document.body.style.cursor = 'default'
       if edgeContext.addingEdge
         @getTag().tween.reverse()
         @getText().tween.reverse()
-    .on 'mouseup touchend', (event) ->
+    .on 'mouseup tap', (event) ->
       labelEdgeAction(event, @)
     .add new Kinetic.Tag({
       fill: ((length) ->
