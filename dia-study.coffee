@@ -295,10 +295,7 @@ if root.Meteor.isClient
       $('#form-title').val ''
 
     'change #edge-mode' : (event) ->
-      if document.all
-        edgeContext['addingEdge'] = event.srcElement.checked
-      else
-        edgeContext['addingEdge'] = event.target.value
+      edgeContext['addingEdge'] = event.target.checked
   })
 
 if root.Meteor.isServer
