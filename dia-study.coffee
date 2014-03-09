@@ -240,7 +240,7 @@ class KineticFactory
       if edgeContext.addingEdge
         @getTag().tween.reverse()
         @getText().tween.reverse()
-    .on 'mouseup', (event) ->
+    .on 'mouseup touchend', (event) ->
       labelEdgeAction(event, @)
     .add new Kinetic.Tag({
       fill: ((length) ->
