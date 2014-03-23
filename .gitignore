@@ -1,0 +1,9 @@
+# for emacs
+*~
+TAGS/
+
+# for sublime text
+*.sublime-*
+
+!.gitignore
+!.gitkeep
