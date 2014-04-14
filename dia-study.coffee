@@ -1,15 +1,11 @@
 class GraphNode
-  constructor: (@title, @xpos, @ypos) ->
-  @width:0
-  @height:0
+  constructor: (@title, @xpos, @ypos, @width, @height) ->
   centerX: -> @xpos + @width/2
   centerY: -> @ypos + @height/2
   @fromAttrs:(node) ->
-    g = new GraphNode(node.title, node.xpos, node.ypos)
-    g.width = node.width
-    g.height = node.height
+    g = new GraphNode(node.title, node.xpos, node.ypos, node.width, node.height)
     g
-  show: -> "title:#{@title} x:#{@xpos} y:#{@ypos}"
+  show: -> "title:#{@title} x:#{@xpos} y:#{@ypos} width:#{@width} height:#{@height}"
 
 @GraphNodes = new Meteor.Collection 'GraphNodes'
 
@@ -29,18 +25,20 @@ class Edge
 
 class Graph
   addNode: (title) ->
-    graphNode = new GraphNode title, kContext.randomX(), kContext.randomY()
+    graphNode = new GraphNode title, kContext.randomX(), kContext.randomY(), 0, 0
     console.log graphNode.show()
     if not GraphNodes.validate graphNode
       alert 'input invalid'
       return
-    inserted = GraphNodes.insert graphNode, (error, id) ->
+    GraphNodes.insert graphNode, (error, id) ->
       if error
         console.log JSON.stringify error, null, 2
       else
         s = KineticFactory.createShape(graphNode, id)
+        console.log "#{s.width()} #{s.height()}"
         GraphNodes.update {_id: id}, {$set: width: s.width(), height: s.height() }
         kContext.registerShape s
+      id
 
   addEdge: (edgeContext) ->
     edge = new Edge(edgeContext.from, edgeContext.to)
@@ -54,6 +52,22 @@ class Graph
       else
         console.log edge.show()
         kContext.registerLine KineticFactory.createLine(edge, result)
+      result
+
+  addEdge2: (fromId, toId) ->
+    edge = new Edge(fromId, toId)
+    from = GraphNodes.findOne _id: fromId
+    to = GraphNodes.findOne _id: toId
+    edge.startx = from.xpos + 43
+    edge.starty = from.ypos + 15
+    edge.endx = to.xpos + 36
+    edge.endy = to.ypos + 15
+    Edges.insert edge, (error, result) ->
+      if error
+        console.log JSON.stringify error, null, 2
+      else
+        console.log edge.show()
+        kContext.registerLine KineticFactory.createLine edge, result
 
   moveNode: ->
     id = dragContext.nodeId
@@ -73,7 +87,7 @@ class Graph
   getNode: (id) ->
     node = GraphNodes.findOne _id: id
     if node
-      GraphNode.fromAttrs(node)
+      GraphNode.fromAttrs node
 
   findEdgesFrom: (nodeId) ->
     Edges.find({from: nodeId}).fetch()
@@ -124,7 +138,7 @@ layerEdgeAction = (event) ->
     edgeContext['status'] = EdgeAddingStatus.nothing
     if edgeContext.from is edgeContext.to
       return
-    graph.addEdge(edgeContext)
+    graph.addEdge edgeContext
 
 ###
 DragActions
@@ -279,8 +293,12 @@ if root.Meteor.isClient
 
   Meteor.startup ->
     kContext.build()
-    graph.addNode 'ふなっしー'
-    graph.addNode 'ヒャハー'
+    funa = graph.addNode 'ふなっしー'
+    hyaha = graph.addNode 'ヒャハー'
+    shiru = graph.addNode '梨汁プシャー'
+    graph.addEdge2 funa, hyaha
+    graph.addEdge2 funa, shiru
+
     console.log 'client ready.'
 
   Template.diagram.greeting = () ->
