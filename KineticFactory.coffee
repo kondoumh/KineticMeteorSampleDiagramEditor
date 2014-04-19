@@ -85,13 +85,13 @@ dragMoveAction = (shape) ->
   console.log "#{shape.attrs.x}, #{shape.attrs.y}"
   dragContext.node.xpos = shape.x()
   dragContext.node.ypos = shape.y()
-  kContext.dragEdges()
+  kineticContext.dragEdges()
 
 dragEndAction = (shape) ->
   dragContext.node.xpos = shape.x()
   dragContext.node.ypos = shape.y()
   graph.moveNode()
-  kContext.dragEdges()
+  kineticContext.dragEdges()
   graph.moveEdges()
 
 @kineticFactory = new KineticFactory

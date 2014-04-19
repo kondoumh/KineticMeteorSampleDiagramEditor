@@ -61,4 +61,4 @@ layerEdgeAction = (event) ->
       return
     graph.addEdge edgeContext
 
-@kContext = new KineticContext
+@kineticContext = new KineticContext

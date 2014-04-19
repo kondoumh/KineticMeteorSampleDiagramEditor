@@ -20,7 +20,7 @@ class Graph
   build: ->
     console.log 'Graph ready.'
   addNode: (title) ->
-    graphNode = new GraphNode title, kContext.randomX(), kContext.randomY(), 0, 0
+    graphNode = new GraphNode title, kineticContext.randomX(), kineticContext.randomY(), 0, 0
     console.log graphNode.show()
     if not GraphNodes.validate graphNode
       alert 'input invalid'
@@ -32,7 +32,7 @@ class Graph
         s = kineticFactory.createShape(graphNode, id)
         console.log "#{s.width()} #{s.height()}"
         GraphNodes.update {_id: id}, {$set: width: s.width(), height: s.height() }
-        kContext.registerShape s
+        kineticContext.registerShape s
       id
 
   addEdge: (edgeContext) ->
@@ -46,10 +46,10 @@ class Graph
         console.log JSON.stringify error, null, 2
       else
         console.log edge.show()
-        kContext.registerLine kineticFactory.createLine(edge, result)
+        kineticContext.registerLine kineticFactory.createLine(edge, result)
       result
 
-  addEdge2: (fromId, toId) ->
+  addEdgeByIds: (fromId, toId) ->
     edge = new Edge(fromId, toId)
     from = GraphNodes.findOne _id: fromId
     to = GraphNodes.findOne _id: toId
@@ -62,7 +62,7 @@ class Graph
         console.log JSON.stringify error, null, 2
       else
         console.log edge.show()
-        kContext.registerLine kineticFactory.createLine edge, result
+        kineticContext.registerLine kineticFactory.createLine edge, result
 
   moveNode: ->
     id = dragContext.nodeId

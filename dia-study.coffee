@@ -10,15 +10,15 @@ root = global ? window
 if root.Meteor.isClient
 
   Meteor.startup ->
-    kContext.build()
-    graph.build()
+    kineticContext.build()
     kineticFactory.build()
+    graph.build()
 
     funa = graph.addNode 'ふなっしー'
     hyaha = graph.addNode 'ヒャハー'
     shiru = graph.addNode '梨汁プシャー'
-    graph.addEdge2 funa, hyaha
-    graph.addEdge2 funa, shiru
+    graph.addEdgeByIds funa, hyaha
+    graph.addEdgeByIds funa, shiru
 
     console.log 'client ready.'
 
