@@ -1,3 +1,10 @@
+@GraphNodes = new Meteor.Collection 'GraphNodes'
+
+@GraphNodes.validate = (graphNode) ->
+  if graphNode.title then true else false
+
+@Edges = new Meteor.Collection 'Edges'
+
 @EdgeAddingStatus =
   nothing: 0
   started: 1
