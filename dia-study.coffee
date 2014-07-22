@@ -26,6 +26,11 @@ if root.Meteor.isClient
       graph.addNode $('#form-title').val()
       $('#form-title').val ''
 
+    'keypress #form-title' : (event) ->
+      if event.charCode == 13
+        graph.addNode $('#form-title').val()
+        $('#form-title').val ''
+
     'change #edge-mode' : (event) ->
       edgeContext['addingEdge'] = event.target.checked
   })
