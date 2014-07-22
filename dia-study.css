@@ -1,1 +1,7 @@
 /* CSS declarations go here */
+
+#container {
+  border: 2px solid #000;
+  width: 800px;
+  height: 600px;
+}

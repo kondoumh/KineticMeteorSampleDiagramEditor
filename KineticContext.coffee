@@ -2,8 +2,8 @@ class KineticContext
   build: ->
     @stage = new Kinetic.Stage({
       container  : container
-      width      : 578
-      height     : 200
+      width      : 800
+      height     : 600
     })
     @layer = new Kinetic.Layer()
     .on 'mouseup tap', (event) ->
