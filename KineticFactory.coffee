@@ -32,13 +32,13 @@ class KineticFactory
     .add new Kinetic.Tag({
       fill: ((length) ->
         if length % 5 is 0
-          'green'
+          '#CEF6CE'
         else if length % 3 is 0
-          'red'
+          '#F5A9A9'
         else if length % 2 is 0
-          'pink'
+          '#F6CEF5'
         else
-          'yellow'
+          '#F2F5A9'
         )(graphNode.title.length)
       stroke: 'black'
       strokeWidth: 4
