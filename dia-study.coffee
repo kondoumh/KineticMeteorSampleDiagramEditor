@@ -15,24 +15,26 @@ if root.Meteor.isClient
 
     console.log 'client ready.'
 
+  append = () ->
+    graph.addNode $('#form-title').val()
+    $('#form-title').val ''
+
   Template.diagram.greeting = () ->
     'Welcome to dia-study. ' + (->
       d = new Date
       "#{d.getHours()}:#{d.getMinutes()}:#{d.getSeconds()}")()
 
-
   Template.diagram.events({
     'click #add-node' : () ->
-      graph.addNode $('#form-title').val()
-      $('#form-title').val ''
+      append()
 
     'keypress #form-title' : (event) ->
       if event.charCode == 13
-        graph.addNode $('#form-title').val()
-        $('#form-title').val ''
+        append()
 
     'change #edge-mode' : (event) ->
       edgeContext['addingEdge'] = event.target.checked
+
   })
 
 if root.Meteor.isServer
