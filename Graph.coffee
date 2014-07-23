@@ -69,7 +69,7 @@ class Graph
     x = dragContext.node.xpos
     y = dragContext.node.ypos
     GraphNodes.update {_id: id}, {$set: xpos: x, ypos: y}
-    console.log "#{dragContext.node.title} #{x} #{y}"
+    #console.log "#{dragContext.node.title} #{x} #{y}"
 
   moveEdges: ->
     x = dragContext.node.centerX()

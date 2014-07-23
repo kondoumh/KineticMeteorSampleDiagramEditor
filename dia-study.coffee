@@ -20,7 +20,7 @@ if root.Meteor.isClient
     $('#form-title').val ''
 
   Template.diagram.greeting = () ->
-    'Welcome to dia-study. ' + (->
+    'dia-study. ' + (->
       d = new Date
       "#{d.getHours()}:#{d.getMinutes()}:#{d.getSeconds()}")()
 
