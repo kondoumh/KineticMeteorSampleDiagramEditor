@@ -31,14 +31,17 @@ class KineticFactory
       labelEdgeAction(event, @)
     .add new Kinetic.Tag({
       fill: ((length) ->
-        if length % 5 is 0
-          '#CEF6CE'
-        else if length % 3 is 0
-          '#F5A9A9'
-        else if length % 2 is 0
-          '#F6CEF5'
+        n = parseInt Math.random() * 4 #length
+        if n ==  0
+          '#CEF6CE' # 緑
+        else if n == 1
+          '#F5A9A9' # ピンク
+        else if n == 2
+          '#F6CEF5' # 紫
+        else if n == 3
+          '#F2F5A9' # 黄
         else
-          '#F2F5A9'
+          '#FFFFFF' # 白
         )(graphNode.title.length)
       stroke: 'black'
       strokeWidth: 4
