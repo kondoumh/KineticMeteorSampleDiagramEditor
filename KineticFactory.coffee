@@ -2,7 +2,7 @@ class KineticFactory
   build: ->
     console.log 'factory ready'
   createShape: (graphNode, id) ->
-    new Kinetic.Label({
+    new Konva.Label({
       x: graphNode.xpos
       y: graphNode.ypos
       width: 100
@@ -29,7 +29,7 @@ class KineticFactory
         @getText().tween.reverse()
     .on 'mouseup tap', (event) ->
       labelEdgeAction(event, @)
-    .add new Kinetic.Tag({
+    .add new Konva.Tag({
       fill: ((length) ->
         n = parseInt Math.random() * 4 #length
         if n ==  0
@@ -46,7 +46,7 @@ class KineticFactory
       stroke: 'black'
       strokeWidth: 4
     })
-    .add new Kinetic.Text({
+    .add new Konva.Text({
       text: graphNode.title
       fontSize: 14
       padding: 8
@@ -54,7 +54,7 @@ class KineticFactory
     })
 
   createLine: (edge, id) ->
-    line = new Kinetic.Line({
+    line = new Konva.Line({
       points: [edge.startx, edge.starty, edge.endx, edge.endy]
       stroke: 'black'
       strokeWidth: 4

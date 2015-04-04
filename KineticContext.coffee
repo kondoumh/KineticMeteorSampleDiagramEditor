@@ -1,11 +1,11 @@
 class KineticContext
   build: ->
-    @stage = new Kinetic.Stage({
+    @stage = new Konva.Stage({
       container  : container
       width      : 800
       height     : 500
     })
-    @layer = new Kinetic.Layer()
+    @layer = new Konva.Layer()
     .on 'mouseup tap', (event) ->
       layerEdgeAction(event)
     @stage.add @layer
@@ -23,11 +23,11 @@ class KineticContext
     line.moveToBottom()
     @layer.draw()
   applyTweenTo = (node) ->
-    node.tween = new Kinetic.Tween({
+    node.tween = new Konva.Tween({
       node: node
       scaleX: 1.2
       scaleY: 1.2
-      easing: Kinetic.Easings.EaseInOut
+      easing: Konva.Easings.EaseInOut
       duration: 0.5
     })
   dragEdges: ->
